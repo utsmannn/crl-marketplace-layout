@@ -1,0 +1,44 @@
+name: Deploy crl-marketplace-layout
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: crl-marketplace-layout:latest
+          outputs: type=docker,dest=/tmp/crl-marketplace-layout.tar
+
+      - name: Copy Docker image to VM
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "/tmp/crl-marketplace-layout.tar,docker-compose.yml"
+          target: "~/crl-marketplace-layout"
+
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/crl-marketplace-layout
+            docker load -i crl-marketplace-layout.tar
+            docker-compose down || true
+            docker-compose up -d

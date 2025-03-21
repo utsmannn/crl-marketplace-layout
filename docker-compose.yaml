@@ -1,0 +1,9 @@
+services:
+  crl-marketplace-layout:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crl-marketplace-layout
+    ports:
+      - "8002:8002"
+    restart: always
