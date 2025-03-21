@@ -5,5 +5,5 @@ services:
       dockerfile: Dockerfile
     container_name: crl-marketplace-layout
     ports:
-      - "8002:8002"
+      - "8004:8004"
     restart: always
